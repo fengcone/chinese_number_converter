@@ -10,20 +10,40 @@ public class ChineseNumberUtil {
 	public static String convertString(String string) {
 		StringBuilder builder = new StringBuilder();
 		List<NumberEnum> tempList = new ArrayList<>();
+		boolean isSimple = true;
 		for (int i = 0; i < string.length(); i++) {
 			NumberEnum numberEnum = NumberEnum.getByChar(string.charAt(i));
-			if (numberEnum == null) {
-				if (tempList.size() != 0) {
+			if (numberEnum == null && tempList.size() != 0) {
+				if (!isSimple) {
 					builder.append(convert2Number(tempList));
-					tempList = new ArrayList<>();
+				} else {
+					builder.append(convert2Simple(tempList));
 				}
+				tempList = new ArrayList<>();
+			}
+			if (numberEnum == null) {
 				builder.append(string.charAt(i));
 				continue;
 			}
+			if (numberEnum.type > 1) {
+				isSimple = false;
+			}
 			tempList.add(numberEnum);
 			if (i == string.length() - 1) {
-				builder.append(convert2Number(tempList));
+				if (!isSimple) {
+					builder.append(convert2Number(tempList));
+				} else {
+					builder.append(convert2Simple(tempList));
+				}
 			}
+		}
+		return builder.toString();
+	}
+
+	private static String convert2Simple(List<NumberEnum> tempList) {
+		StringBuilder builder = new StringBuilder();
+		for (NumberEnum numberEnum : tempList) {
+			builder.append(numberEnum.value);
 		}
 		return builder.toString();
 	}
@@ -52,7 +72,6 @@ public class ChineseNumberUtil {
 		return result;
 	}
 
-
 	private static Long convert2BasicNum(List<NumberEnum> numberList) {
 		NumberEnum last = NumberEnum.ONE;
 		Long result = 0L;
@@ -74,26 +93,13 @@ public class ChineseNumberUtil {
 	}
 
 	public static void main(String[] args) {
-		String number = "物流九千零五段誉si八百三十二万零5";
+		String number = "一三五七九零五是十九";
 		System.out.println(ChineseNumberUtil.convertString(number));
 	}
 
 	enum NumberEnum {
-		ZERO("零〇", 0L, 1), 
-		ONE("一壹", 1L, 1),
-		TWO("二贰", 2L, 1),
-		THREE("三叁", 3L, 1), 
-		FOUR("四肆", 4L, 1), 
-		FIVE("五伍", 5L, 1), 
-		SIX("六陆", 6L, 1), 
-		SEVEN("七柒", 7L, 1), 
-		EIGHT("八捌", 8L, 1),
-		NINE("九玖", 9L, 1), 
-		TEN("十拾", 10L, 2), 
-		HUNDRED("百佰", 100L, 2), 
-		THOUSAND("千仟", 1000L, 2), 
-		TEN_THOUSAND("万萬", 10000L,3), 
-		HUNDRED_MILLION("亿億", 100000000L, 3);
+		ZERO("零〇", 0L, 1), ONE("一壹", 1L, 1), TWO("二贰", 2L, 1), THREE("三叁", 3L, 1), FOUR("四肆", 4L, 1), FIVE("五伍", 5L, 1), SIX("六陆", 6L, 1), SEVEN("七柒", 7L, 1), EIGHT("八捌", 8L, 1), NINE("九玖", 9L, 1), TEN("十拾", 10L, 2), HUNDRED("百佰", 100L, 2), THOUSAND("千仟", 1000L, 2), TEN_THOUSAND("万萬", 10000L,
+				3), HUNDRED_MILLION("亿億", 100000000L, 3);
 
 		String key;
 		Long value;
