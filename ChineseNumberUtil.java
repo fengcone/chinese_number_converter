@@ -14,26 +14,37 @@ public class ChineseNumberUtil {
 		for (int i = 0; i < string.length(); i++) {
 			NumberEnum numberEnum = NumberEnum.getByChar(string.charAt(i));
 			if (numberEnum == null && tempList.size() != 0) {
-				if (!isSimple) {
-					builder.append(convert2Number(tempList));
-				} else {
+				if (isSimple) {
 					builder.append(convert2Simple(tempList));
+				} else if (tempList.size() == 1 && tempList.get(0).type > 2) {
+					builder.append(string.charAt(i - 1));
+				} else {
+					builder.append(convert2Number(tempList));
 				}
 				tempList = new ArrayList<>();
 			}
 			if (numberEnum == null) {
+				isSimple = true;
 				builder.append(string.charAt(i));
 				continue;
 			}
-			if (numberEnum.type > 1) {
+			if (numberEnum.type > 1 && isSimple) {
 				isSimple = false;
+				if (tempList.size() >= 2) {
+					builder.append(convert2Simple(tempList.subList(0, tempList.size() - 1)));
+					NumberEnum temp = tempList.get(tempList.size() - 1);
+					tempList = new ArrayList<>();
+					tempList.add(temp);
+				}
 			}
 			tempList.add(numberEnum);
 			if (i == string.length() - 1) {
-				if (!isSimple) {
-					builder.append(convert2Number(tempList));
-				} else {
+				if (isSimple) {
 					builder.append(convert2Simple(tempList));
+				} else if (tempList.size() == 1 && tempList.get(0).type > 2) {
+					builder.append(string.charAt(i));
+				} else {
+					builder.append(convert2Number(tempList));
 				}
 			}
 		}
@@ -50,24 +61,22 @@ public class ChineseNumberUtil {
 
 	private static Long convert2Number(List<NumberEnum> numberList) {
 		List<NumberEnum> tempList = new ArrayList<ChineseNumberUtil.NumberEnum>();
-		NumberEnum last = null;
 		Long result = 0L;
 		for (int i = 0; i < numberList.size(); i++) {
 			NumberEnum numberEnum = numberList.get(i);
-			if (numberEnum.type == 3) {
-				if (last.type == 3) {
-					result = result * numberEnum.value;
+			if (numberEnum.type == 4) {
+				if (result >= NumberEnum.TEN_THOUSAND.value) {
+					result = (result + convert2BasicNum(tempList)) * numberEnum.value;
 				} else {
 					result = result + convert2BasicNum(tempList) * numberEnum.value;
-					tempList = new ArrayList<>();
 				}
+				tempList = new ArrayList<>();
 			} else {
 				tempList.add(numberList.get(i));
 			}
 			if (i == numberList.size() - 1) {
 				result = result + convert2BasicNum(tempList);
 			}
-			last = numberEnum;
 		}
 		return result;
 	}
@@ -77,7 +86,7 @@ public class ChineseNumberUtil {
 		Long result = 0L;
 		for (int i = 0; i < numberList.size(); i++) {
 			NumberEnum numberEnum = numberList.get(i);
-			if (numberEnum.type == 2) {
+			if (numberEnum.type == 2 || numberEnum.type == 3) {
 				result = result + last.value * numberEnum.value;
 			}
 			if (i == numberList.size() - 1 && numberEnum.type == 1) {
@@ -93,13 +102,13 @@ public class ChineseNumberUtil {
 	}
 
 	public static void main(String[] args) {
-		String number = "一三五七九零五是十九";
+		String number = "就这么滴吧规范呐23445十1万";
 		System.out.println(ChineseNumberUtil.convertString(number));
 	}
 
 	enum NumberEnum {
-		ZERO("零〇", 0L, 1), ONE("一壹", 1L, 1), TWO("二贰", 2L, 1), THREE("三叁", 3L, 1), FOUR("四肆", 4L, 1), FIVE("五伍", 5L, 1), SIX("六陆", 6L, 1), SEVEN("七柒", 7L, 1), EIGHT("八捌", 8L, 1), NINE("九玖", 9L, 1), TEN("十拾", 10L, 2), HUNDRED("百佰", 100L, 2), THOUSAND("千仟", 1000L, 2), TEN_THOUSAND("万萬", 10000L,
-				3), HUNDRED_MILLION("亿億", 100000000L, 3);
+		ZERO("零〇", 0L, 1), ONE("一壹", 1L, 1), TWO("二两贰", 2L, 1), THREE("三叁", 3L, 1), FOUR("四肆", 4L, 1), FIVE("五伍", 5L, 1), SIX("六陆", 6L, 1), SEVEN("七柒", 7L, 1), EIGHT("八捌", 8L, 1), NINE("九玖", 9L, 1), TEN("十拾", 10L, 2), HUNDRED("百佰", 100L, 3), THOUSAND("千仟", 1000L, 3), TEN_THOUSAND("万萬", 10000L,
+				4), HUNDRED_MILLION("亿億", 100000000L, 4);
 
 		String key;
 		Long value;
