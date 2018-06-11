@@ -87,6 +87,9 @@ public class ChineseNumberUtil {
 		for (int i = 0; i < numberList.size(); i++) {
 			NumberEnum numberEnum = numberList.get(i);
 			if (numberEnum.type == 2 || numberEnum.type == 3) {
+				if (last == NumberEnum.ZERO) {
+					last = NumberEnum.ONE;
+				}
 				result = result + last.value * numberEnum.value;
 			}
 			if (i == numberList.size() - 1 && numberEnum.type == 1) {
@@ -102,7 +105,7 @@ public class ChineseNumberUtil {
 	}
 
 	public static void main(String[] args) {
-		String number = "就这么滴吧规范呐23445十1万";
+		String number = "三百零十一";
 		System.out.println(ChineseNumberUtil.convertString(number));
 	}
 
